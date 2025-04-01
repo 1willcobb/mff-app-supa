@@ -4,14 +4,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Feather } from "@expo/vector-icons";
 import morro from "@/constants/images/morro.jpg";
-import apiClient, { saveSession } from "@/api.client"; // Adjust path
+import { login, signUp } from "@/api.client"; // Import login & signUp helpers
 
 const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authUser, setAuthUser] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isSignUp, setIsSignUp] = useState(true); // Toggle between SignUp & Login
+  const [isSignUp, setIsSignUp] = useState(false); // Toggle between SignUp & Login
 
   // Form Fields
   const [fullName, setFullName] = useState("");
@@ -32,18 +32,12 @@ const SignIn = () => {
 
     try {
       setIsLoading(true);
-      const response = await apiClient.post("/auth/signup", {
-        fullName,
-        username,
-        password,
-      });
-
-      if (response.status === 201 && response.data.sessionId) {
-        await saveSession(response.data.sessionId);
+      const response = await signUp(fullName, username, email, password);
+      if (response.status === 201) {
         setAuthUser(response.data.user);
         setIsAuthenticated(true);
       } else {
-        setErrorMessage(response.data?.message || "Signup failed.");
+        setErrorMessage("Signup failed. Try again.");
       }
     } catch (error) {
       setErrorMessage("An error occurred during signup.");
@@ -53,16 +47,10 @@ const SignIn = () => {
   };
 
   const handleLogin = async () => {
-    console.log("Logging in with:", { username, password });
     try {
       setIsLoading(true);
-      const response = await apiClient.post("/auth/login", {
-        username,
-        password,
-      });
-
-      if (response.status === 200 && response.data.sessionId) {
-        await saveSession(response.data.sessionId);
+      const response = await login(email, password);
+      if (response.status === 200) {
         setAuthUser(response.data.user);
         setIsAuthenticated(true);
       } else {
@@ -86,7 +74,7 @@ const SignIn = () => {
         keyboardShouldPersistTaps="handled"
       >
         <Image source={morro} className="w-full h-1/3" />
-        <View className="px-5 flex-1 justify-center lg:w-1/2">
+        <View className="px-5 mt-10 flex justify-center lg:w-1/2">
           <Text className="font-bold text-primary-600 text-center text-3xl mb-2">
             Welcome to MyFilmFriends!
           </Text>
@@ -123,7 +111,7 @@ const SignIn = () => {
             )}
             <TextInput
               className="bg-white shadow-md w-full py-3 px-4 mt-4 rounded-md text-lg placeholder:text-gray-400"
-              placeholder="Eamil"
+              placeholder="Email"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"

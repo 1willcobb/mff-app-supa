@@ -13,7 +13,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { Stack, useRouter } from "expo-router";
-import { AuthProvider } from "@/lib/authContext"; // Import your AuthProvider
+import { AuthProvider } from "@/api/authContext"; // Import your AuthProvider
 
 // --- Import global styles ---
 import "./global.css";
@@ -28,24 +28,8 @@ export default function RootLayout() {
     <AuthProvider>
       <ThemeProvider value={DefaultTheme}>
         <Stack screenOptions={{ headerShown: true }}>
-          <Stack.Screen name="index" options={{ headerTitle: "home" }} />
-          <Stack.Screen
-            name="explore"
-            options={{ headerShown: true, headerTitle: "explore" }}
-          />
-          <Stack.Screen
-            name="modal"
-            options={{
-              presentation: "modal",
-              headerLeft: () => (
-                <Button title="Go back" onPress={() => router.back()} />
-              ),
-            }}
-          />
-          r
-          <Stack.Screen name="+not-found" />
-          <Stack.Screen name="sign-in" options={{ headerShown: true }} />
-          <Stack.Screen name="/explore" options={{ headerShown: true }} />
+          <Stack.Screen name="(root)/index" options={{ headerTitle: "home", headerShown: false }} />
+          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
         </Stack>
       </ThemeProvider>
     </AuthProvider>

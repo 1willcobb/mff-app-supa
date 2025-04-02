@@ -10,7 +10,7 @@ import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Feather } from "@expo/vector-icons";
-import { useAuth } from "@/lib/authContext"; // Import useAuth hook
+import { useAuth } from "@/api/authContext"; // Import useAuth hook
 import { useRouter } from "expo-router";
 import morro from "@/constants/images/morro.jpg";
 

@@ -1,8 +1,9 @@
 import { View } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import { useAuth } from "@/lib/authContext"; // Import your AuthProvider
+import { useAuth } from "@/api/authContext"; // Import your AuthProvider
 import SignIn from "@/app/sign-in";
+import Explore from "@/app/(root)/(tabs)/explore";
 import { useRouter } from "expo-router";
 
 const Stack = createStackNavigator();
@@ -19,7 +20,11 @@ export default function Index() {
     <View className="flex flex-col h-full bg-white">
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <Stack.Screen name="explore" component={Explore} />
+          <Stack.Screen
+            name="./app/(root)/(tabs)/explore"
+            component={Explore}
+            options={{ headerTitle: "explore" }}
+          />
         ) : (
           <Stack.Screen name="sign-in" component={SignIn} />
         )}

@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import apiClient, { saveSession } from "@/api.client"; // Adjust path
+import apiClient, { saveSession } from "@/api/api.client"; // Adjust path
+import { getItem } from "@/api/storage"; // Adjust path
 
 // Create Auth Context
 const AuthContext = createContext();
@@ -15,11 +16,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       setIsLoading(true);
-      const token = await AsyncStorage.getItem("sessionToken");
+      const token = await getItem("sessionToken");
 
       if (token) {
         try {
-          const response = await apiClient.get("/user/login", {
+          const response = await apiClient.get(login, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -45,7 +46,12 @@ export const AuthProvider = ({ children }) => {
     console.log("Signing up...");
     try {
       setIsLoading(true);
-      const response = await apiClient.post("/user", { name, email, password, username });
+      const response = await apiClient.post("/user", {
+        name,
+        email,
+        password,
+        username,
+      });
 
       console.log("Signup response:", response);
 
@@ -63,16 +69,17 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }
-
+  };
 
   // Login function
   const login = async (email, password) => {
     console.log("Logging in...");
     try {
       setIsLoading(true);
-      const response = await apiClient.post("/user/verifylogin", { email, password });
-      
+      const response = await apiClient.post("/user/verifylogin", {
+        email,
+        password,
+      });
 
       if (response.status === 200 && response.data.token) {
         await saveSession(response.data.token);
@@ -96,7 +103,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ authUser, isAuthenticated, isLoading, login, logout, signup }}>
+    <AuthContext.Provider
+      value={{ authUser, isAuthenticated, isLoading, login, logout, signup }}
+    >
       {children}
     </AuthContext.Provider>
   );

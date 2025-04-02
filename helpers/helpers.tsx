@@ -1,5 +1,5 @@
 // Example Login function
-import apiClient, { saveSession, clearSession } from "@/api/api.client"; // Adjust path
+import apiClient, { saveSession, clearSession } from "@/api/auth/api.client"; // Adjust path
 // Assume you have some state management for user and isAuthenticated
 
 const handleLogin = async (email: string, password: string) => {

@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import { useAuth } from "@/api/authContext"; // Import your AuthProvider
+import { useAuth } from "@/api/auth/authContext"; // Import your AuthProvider
 import SignIn from "@/app/sign-in";
 import Explore from "@/app/(root)/(tabs)/explore";
 import { useRouter } from "expo-router";

@@ -13,7 +13,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { Stack, useRouter } from "expo-router";
-import { AuthProvider } from "@/api/authContext"; // Import your AuthProvider
+import { AuthProvider } from "@/api/auth/authContext"; // Import your AuthProvider
 
 // --- Import global styles ---
 import "./global.css";

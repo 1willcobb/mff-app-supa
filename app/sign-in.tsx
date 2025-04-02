@@ -5,28 +5,29 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Feather } from "@expo/vector-icons";
-import { useAuth } from "@/api/auth/authContext"; // Import useAuth hook
+import { useAuth } from "@/api/auth/authContext";
 import { useRouter } from "expo-router";
 import morro from "@/constants/images/morro.jpg";
-
 import { Dimensions } from "react-native";
+import { UserRegistration } from "@/api/types/user.types";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 const SignIn = () => {
   const router = useRouter();
-  const { login, signUp, isLoggedIn } = useAuth(); // Use auth context
+  const { user, login, signup, error, isLoading, isAuthenticated } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
 
   // Form Fields
-  const [fullName, setFullName] = useState("");
+  const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,40 +35,110 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleAuth = async () => {
-    setIsLoading(true);
+  // Check if the user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      router.replace("/(root)/(tabs)/explore");
+    }
+  }, [isAuthenticated, user, router]);
+
+  // Update local error message when error from auth context changes
+  useEffect(() => {
+    if (error) {
+      setErrorMessage(error);
+    }
+  }, [error]);
+
+  const validateForm = () => {
+    // Clear previous error
     setErrorMessage("");
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMessage("Please enter a valid email address");
+      return false;
+    }
+
+    // Password validation
+    if (password.length < 6) {
+      setErrorMessage("Password must be at least 6 characters long");
+      return false;
+    }
+
+    // Additional validation for sign up
+    if (isSignUp) {
+      if (password !== confirmPassword) {
+        setErrorMessage("Passwords do not match");
+        return false;
+      }
+
+      if (!name.trim()) {
+        setErrorMessage("Full name is required");
+        return false;
+      }
+
+      if (!username.trim()) {
+        setErrorMessage("Username is required");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleAuth = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setFormLoading(true);
+    
     try {
       if (isSignUp) {
-        if (password !== confirmPassword) {
-          setErrorMessage("Passwords do not match");
-          return;
+        const registrationData: UserRegistration = {
+          name,
+          username,
+          email,
+          password
+        };
+        
+        const user = await signup(registrationData);
+        
+        if (user) {
+          console.log("User registered successfully:", user);
+          router.replace("/(root)/(tabs)/explore");
         }
-        await signUp(fullName, username, email, password);
       } else {
-        console.log("Logging in with from front end", email, password);
-        await login(email, password);
-      }
-      // Check if user is logged in
-      if (isLoggedIn) {
-        // Navigate to Home (Explore) after successful login
-        router.push("/explore");
-      } else {
-        setIsSignUp(true);
+        const user = await login(email, password);
+        
+        if (user) {
+          console.log("User logged in successfully:", user);
+          router.replace("/(root)/(tabs)/explore");
+        }
       }
     } catch (error) {
-      setErrorMessage(error.message || "Authentication failed. Try again.");
+      console.error("Authentication error:", error);
+      // Error will be handled by the auth context and displayed via useEffect
     } finally {
-      setIsLoading(false);
+      setFormLoading(false);
     }
   };
+
+  // If we're loading from auth context
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#2563eb" />
+        <Text className="mt-4 text-gray-600">Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView className="bg-white flex-1">
       <KeyboardAwareScrollView
         contentContainerStyle={{
-          flex: 1,
           flexGrow: 1,
           justifyContent: "between",
           alignItems: "center",
@@ -77,14 +148,14 @@ const SignIn = () => {
       >
         <Image
           source={morro}
-          className="w-full h-1/3 object-top resize-y"
+          className="w-full h-1/3 object-top"
           style={{
             width: "100%",
             height: height * 0.3,
             resizeMode: "cover",
           }}
         />
-        <View className="px-5 mt-10 flex justify-center lg:w-1/2">
+        <View className="px-5 mt-10 flex justify-center w-full max-w-md">
           <Text className="font-bold text-primary-600 text-center text-3xl mb-2">
             Welcome to MyFilmFriends!
           </Text>
@@ -94,26 +165,27 @@ const SignIn = () => {
               : "Sign in to continue"}
           </Text>
 
-          {errorMessage && (
+          {errorMessage ? (
             <Text className="text-red-500 mt-2 text-center">
               {errorMessage}
             </Text>
-          )}
+          ) : null}
 
-          <View>
+          <View className="mt-4">
             {isSignUp && (
               <>
                 <TextInput
                   className="bg-white shadow-md w-full py-3 px-4 rounded-md"
                   placeholder="Full Name"
-                  value={fullName}
-                  onChangeText={setFullName}
+                  value={name}
+                  onChangeText={setName}
                 />
                 <TextInput
                   className="bg-white shadow-md w-full py-3 px-4 mt-4 rounded-md"
                   placeholder="Username"
                   value={username}
                   onChangeText={setUsername}
+                  autoCapitalize="none"
                 />
               </>
             )}
@@ -124,6 +196,7 @@ const SignIn = () => {
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
+              keyboardType="email-address"
             />
 
             <View className="flex-row items-center bg-white shadow-md w-full mt-4 rounded-md">
@@ -171,9 +244,9 @@ const SignIn = () => {
             <TouchableOpacity
               className="bg-primary-600 py-3 px-4 mt-6 rounded-md"
               onPress={handleAuth}
-              disabled={isLoading}
+              disabled={formLoading}
             >
-              {isLoading ? (
+              {formLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text className="text-white text-center font-bold text-lg">
@@ -184,7 +257,10 @@ const SignIn = () => {
 
             <TouchableOpacity
               className="mt-4"
-              onPress={() => setIsSignUp(!isSignUp)}
+              onPress={() => {
+                setIsSignUp(!isSignUp);
+                setErrorMessage("");
+              }}
             >
               <Text className="text-primary-600 text-center">
                 {isSignUp

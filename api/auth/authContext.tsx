@@ -9,6 +9,7 @@ import {
   updateUserData 
 } from "./sessionManager";
 import { User, UserCredentials, UserRegistration, AuthResponse } from "../types";
+import { router } from "expo-router";
 
 // Define the Auth Context shape
 interface AuthContextType {
@@ -136,6 +137,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error("Logout error:", err);
     } finally {
       setIsLoading(false);
+      router.push("/sign-in"); // Redirect to sign-in page
     }
   };
 

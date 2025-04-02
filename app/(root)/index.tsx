@@ -5,12 +5,18 @@ import { useAuth } from "@/api/auth/authContext"; // Import your AuthProvider
 import SignIn from "@/app/sign-in";
 import Explore from "@/app/(root)/(tabs)/explore";
 import { useRouter } from "expo-router";
+import { TouchableOpacity } from "react-native";
 
 const Stack = createStackNavigator();
 
 export default function Index() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const router = useRouter();
+
+  const handleLogout = () => {
+    logout(); // Call the logout function from the auth context
+    router.push("/sign-in"); // Redirect to the sign-in page
+  };
 
   if (isLoading) {
     return null; // You can replace this with a loading spinner
@@ -18,7 +24,22 @@ export default function Index() {
 
   return (
     <View className="flex flex-col h-full bg-white">
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          headerRight() {
+            const router = useRouter();
+            return (
+              <TouchableOpacity
+                onPress={handleLogout}
+                style={{ marginRight: 10 }}
+              >
+                logout
+              </TouchableOpacity>
+            );
+          },
+        }}
+      >
         {user ? (
           <Stack.Screen
             name="./app/(root)/(tabs)/explore"

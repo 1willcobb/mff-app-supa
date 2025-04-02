@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import { getAccessToken } from './tokenManager';
 
 // Configure base API settings
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.11.169:3000/api'; // wills local computer
 
 const apiClient = axios.create({
   baseURL: API_URL,

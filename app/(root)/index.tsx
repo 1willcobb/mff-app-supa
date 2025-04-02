@@ -6,6 +6,7 @@ import SignIn from "@/app/sign-in";
 import Explore from "@/app/(root)/(tabs)/explore";
 import { useRouter } from "expo-router";
 import { TouchableOpacity } from "react-native";
+import ControlBar from "@/components/ControlBar";
 
 const Stack = createStackNavigator();
 
@@ -50,6 +51,7 @@ export default function Index() {
           <Stack.Screen name="sign-in" component={SignIn} />
         )}
       </Stack.Navigator>
+      
     </View>
   );
 }

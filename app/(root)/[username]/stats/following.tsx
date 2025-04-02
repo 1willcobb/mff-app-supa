@@ -2,13 +2,16 @@ import { View, Text } from "react-native";
 import React from "react";
 import { useLocalSearchParams } from "expo-router";
 
-const UserPost = () => {
+const UserStatsFollowing = () => {
   const { username } = useLocalSearchParams();
   return (
     <View>
-      <Text>UserPost {username}</Text>
+      <Text>
+        UserStatsFollowing
+        {username}
+      </Text>
     </View>
   );
 };
 
-export default UserPost;
+export default UserStatsFollowing;

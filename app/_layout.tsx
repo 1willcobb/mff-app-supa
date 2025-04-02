@@ -8,12 +8,12 @@ import { AuthProvider, useAuth } from "@/api/auth/authContext"; // Import your A
 
 // --- Import global styles ---
 import "./global.css";
-import { TouchableOpacity } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import LogoutButton from "@/components/logoutButton";
+import ControlBar from "@/components/ControlBar";
 
 // --- Modified Root Layout Component ---
 export default function RootLayout() {
-
   return (
     // Wrap everything with the AuthProvider
     <AuthProvider>
@@ -25,11 +25,16 @@ export default function RootLayout() {
         >
           <Stack.Screen
             name="(root)/index"
-            options={{ headerTitle: "home", headerShown: false }}
+            options={{
+              headerTitle: "home",
+              headerShown: true,
+              headerRight: () => <LogoutButton />,
+            }}
           />
-          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+          <Stack.Screen name="sign-in" />
         </Stack>
-        <LogoutButton />
+
+        <ControlBar />
       </ThemeProvider>
     </AuthProvider>
   );

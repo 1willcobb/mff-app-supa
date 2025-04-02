@@ -1,17 +1,29 @@
-import { View, Text, Image, TouchableOpacity, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+} from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Feather } from "@expo/vector-icons";
+import { useAuth } from "@/lib/authContext"; // Import useAuth hook
+import { useRouter } from "expo-router";
 import morro from "@/constants/images/morro.jpg";
-import { login, signUp } from "@/api.client"; // Import login & signUp helpers
+
+import { Dimensions } from "react-native";
+
+const { width, height } = Dimensions.get("window");
 
 const SignIn = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authUser, setAuthUser] = useState(null);
+  const router = useRouter();
+  const { login, signUp, isLoggedIn } = useAuth(); // Use auth context
+  const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false); // Toggle between SignUp & Login
+  const [isLoading, setIsLoading] = useState(false);
 
   // Form Fields
   const [fullName, setFullName] = useState("");
@@ -21,43 +33,31 @@ const SignIn = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordMatchError, setPasswordMatchError] = useState("");
 
-  const handleSignUp = async () => {
-    if (password !== confirmPassword) {
-      setPasswordMatchError("Passwords do not match");
-      return;
-    }
-    setPasswordMatchError("");
+  const handleAuth = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
 
     try {
-      setIsLoading(true);
-      const response = await signUp(fullName, username, email, password);
-      if (response.status === 201) {
-        setAuthUser(response.data.user);
-        setIsAuthenticated(true);
+      if (isSignUp) {
+        if (password !== confirmPassword) {
+          setErrorMessage("Passwords do not match");
+          return;
+        }
+        await signUp(fullName, username, email, password);
       } else {
-        setErrorMessage("Signup failed. Try again.");
+        console.log("Logging in with from front end", email, password);
+        await login(email, password);
+      }
+      // Check if user is logged in
+      if (isLoggedIn) {
+        // Navigate to Home (Explore) after successful login
+        router.push("/explore");
+      } else {
+        setIsSignUp(true);
       }
     } catch (error) {
-      setErrorMessage("An error occurred during signup.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLogin = async () => {
-    try {
-      setIsLoading(true);
-      const response = await login(email, password);
-      if (response.status === 200) {
-        setAuthUser(response.data.user);
-        setIsAuthenticated(true);
-      } else {
-        setErrorMessage("Login failed. Please try again.");
-      }
-    } catch (error) {
-      setErrorMessage("An error occurred during login.");
+      setErrorMessage(error.message || "Authentication failed. Try again.");
     } finally {
       setIsLoading(false);
     }
@@ -67,13 +67,23 @@ const SignIn = () => {
     <SafeAreaView className="bg-white flex-1">
       <KeyboardAwareScrollView
         contentContainerStyle={{
+          flex: 1,
           flexGrow: 1,
-          justifyContent: "center",
+          justifyContent: "between",
           alignItems: "center",
+          marginBottom: 20,
         }}
         keyboardShouldPersistTaps="handled"
       >
-        <Image source={morro} className="w-full h-1/3" />
+        <Image
+          source={morro}
+          className="w-full h-1/3 object-top resize-y"
+          style={{
+            width: "100%",
+            height: height * 0.3,
+            resizeMode: "cover",
+          }}
+        />
         <View className="px-5 mt-10 flex justify-center lg:w-1/2">
           <Text className="font-bold text-primary-600 text-center text-3xl mb-2">
             Welcome to MyFilmFriends!
@@ -90,35 +100,35 @@ const SignIn = () => {
             </Text>
           )}
 
-          <SafeAreaView>
+          <View>
             {isSignUp && (
-              <View>
+              <>
                 <TextInput
-                  className="bg-white shadow-md w-full py-3 px-4 mt-4 rounded-md text-lg placeholder:text-gray-400"
+                  className="bg-white shadow-md w-full py-3 px-4 rounded-md"
                   placeholder="Full Name"
                   value={fullName}
                   onChangeText={setFullName}
-                  autoCapitalize="words"
                 />
                 <TextInput
-                  className="bg-white shadow-md w-full py-3 px-4 mt-4 rounded-md text-lg placeholder:text-gray-400"
+                  className="bg-white shadow-md w-full py-3 px-4 mt-4 rounded-md"
                   placeholder="Username"
                   value={username}
                   onChangeText={setUsername}
-                  autoCapitalize="none"
                 />
-              </View>
+              </>
             )}
+
             <TextInput
-              className="bg-white shadow-md w-full py-3 px-4 mt-4 rounded-md text-lg placeholder:text-gray-400"
+              className="bg-white shadow-md w-full py-3 px-4 mt-4 rounded-md"
               placeholder="Email"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
             />
+
             <View className="flex-row items-center bg-white shadow-md w-full mt-4 rounded-md">
               <TextInput
-                className="flex-1 py-3 px-4 text-lg placeholder:text-gray-400"
+                className="flex-1 py-3 px-4"
                 placeholder="Password"
                 secureTextEntry={!showPassword}
                 value={password}
@@ -139,7 +149,7 @@ const SignIn = () => {
             {isSignUp && (
               <View className="flex-row items-center bg-white shadow-md w-full mt-4 rounded-md">
                 <TextInput
-                  className="flex-1 py-3 px-4 text-lg placeholder:text-gray-400"
+                  className="flex-1 py-3 px-4"
                   placeholder="Confirm Password"
                   secureTextEntry={!showConfirmPassword}
                   value={confirmPassword}
@@ -158,18 +168,18 @@ const SignIn = () => {
               </View>
             )}
 
-            {passwordMatchError && (
-              <Text className="text-red-500 mt-2">{passwordMatchError}</Text>
-            )}
-
             <TouchableOpacity
-              className="bg-primary-600 py-3 px-4 mt-6 rounded-md text-lg"
-              onPress={isSignUp ? handleSignUp : handleLogin}
+              className="bg-primary-600 py-3 px-4 mt-6 rounded-md"
+              onPress={handleAuth}
               disabled={isLoading}
             >
-              <Text className="text-white text-center font-bold text-lg">
-                {isSignUp ? "Sign Up" : "Login"}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-white text-center font-bold text-lg">
+                  {isSignUp ? "Sign Up" : "Login"}
+                </Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -182,7 +192,7 @@ const SignIn = () => {
                   : "Don't have an account? Sign up"}
               </Text>
             </TouchableOpacity>
-          </SafeAreaView>
+          </View>
         </View>
       </KeyboardAwareScrollView>
     </SafeAreaView>

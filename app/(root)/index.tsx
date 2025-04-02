@@ -1,14 +1,15 @@
 import { View } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import { useAuth } from "@/context/authContext"; // Import your AuthProvider
-import explore from "@/app/(root)/(tabs)/explore";
+import { useAuth } from "@/lib/authContext"; // Import your AuthProvider
 import SignIn from "@/app/sign-in";
+import { useRouter } from "expo-router";
 
 const Stack = createStackNavigator();
 
 export default function Index() {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
 
   if (isLoading) {
     return null; // You can replace this with a loading spinner
@@ -18,9 +19,9 @@ export default function Index() {
     <View className="flex flex-col h-full bg-white">
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          <Stack.Screen name="Explore" component={explore} />
+          <Stack.Screen name="explore" component={Explore} />
         ) : (
-          <Stack.Screen name="SignIn" component={SignIn} />
+          <Stack.Screen name="sign-in" component={SignIn} />
         )}
       </Stack.Navigator>
     </View>

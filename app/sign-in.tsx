@@ -120,7 +120,7 @@ const SignIn: React.FC = () => {
           
           // Store profile data in Supabase database
           const { error: profileError } = await supabaseClient
-            .from('profiles')
+            .from('user')
             .insert(profileData);
             
           if (profileError) throw profileError;

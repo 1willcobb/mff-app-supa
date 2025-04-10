@@ -1,12 +1,12 @@
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { useAuth } from '@/api/auth/authContext';
+import { useAuth } from '@/utils/authContext';
 
 const LogoutButton = () => {
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       // Navigation happens automatically via the auth context
     } catch (error) {
       console.error('Logout failed:', error);

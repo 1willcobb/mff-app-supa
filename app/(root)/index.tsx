@@ -1,7 +1,8 @@
 import { View } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { useState } from "react";
 
-import { useAuth } from "@/api/auth/authContext"; // Import your AuthProvider
+import { useAuth } from "@/utils/authContext"; // Import your AuthProvider
 import SignIn from "@/app/sign-in";
 import Explore from "@/app/(root)/(tabs)/explore";
 import { useRouter } from "expo-router";
@@ -11,16 +12,16 @@ import ControlBar from "@/components/ControlBar";
 const Stack = createStackNavigator();
 
 export default function Index() {
-  const { user, isLoading, logout } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const router = useRouter();
 
   const handleLogout = () => {
-    logout(); // Call the logout function from the auth context
+    signOut(); // Call the logout function from the auth context
     router.push("/sign-in"); // Redirect to the sign-in page
   };
 
-  if (isLoading) {
-    return null; // You can replace this with a loading spinner
+  if (loading) {
+    return <p>Loading...</p>; // You can replace this with a loading spinner
   }
 
   return (
@@ -51,7 +52,6 @@ export default function Index() {
           <Stack.Screen name="sign-in" component={SignIn} />
         )}
       </Stack.Navigator>
-      
     </View>
   );
 }

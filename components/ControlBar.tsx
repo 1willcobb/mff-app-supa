@@ -11,7 +11,7 @@ import { useRouter, usePathname } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Octicons from "@expo/vector-icons/Octicons";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useAuth } from "@/api/auth/authContext";
+import { useAuth } from "@/utils/authContext";
 
 export default function ControlBar() {
   const router = useRouter();

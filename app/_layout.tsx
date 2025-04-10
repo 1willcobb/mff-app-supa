@@ -4,7 +4,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { Stack, useRouter } from "expo-router";
-import { AuthProvider, useAuth } from "@/api/auth/authContext"; // Import your AuthProvider
+import { AuthProvider } from "@/utils/authContext";
 
 // --- Import global styles ---
 import "./global.css";
@@ -36,6 +36,6 @@ export default function RootLayout() {
 
         <ControlBar />
       </ThemeProvider>
-    </AuthProvider>
+   </AuthProvider>
   );
 }

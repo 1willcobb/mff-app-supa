@@ -5,42 +5,51 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Feather } from "@expo/vector-icons";
-import { useAuth } from "@/api/auth/authContext";
+import { useAuth } from "@/utils/authContext";
 import { useRouter } from "expo-router";
 import morro from "@/constants/images/morro.jpg";
 import { Dimensions } from "react-native";
-import { UserRegistration } from "@/api/types/user.types";
 
 const { height } = Dimensions.get("window");
 
-const SignIn = () => {
+// Define interface for profile data if needed
+interface ProfileData {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  created_at: Date;
+}
+
+const SignIn: React.FC = () => {
   const router = useRouter();
-  const { user, login, signup, error, isLoading, isAuthenticated } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [formLoading, setFormLoading] = useState(false);
+  const auth = useAuth();
+  const { user, loading, error, signIn, signUp, supabaseClient } = auth;
+  
+  const [isSignUp, setIsSignUp] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [formLoading, setFormLoading] = useState<boolean>(false);
 
   // Form Fields
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [name, setName] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
 
   // Check if the user is already authenticated
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (user) {
       router.replace("/(root)/(tabs)/explore");
     }
-  }, [isAuthenticated, user, router]);
+  }, [user, router]);
 
   // Update local error message when error from auth context changes
   useEffect(() => {
@@ -49,7 +58,7 @@ const SignIn = () => {
     }
   }, [error]);
 
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     // Clear previous error
     setErrorMessage("");
 
@@ -87,7 +96,7 @@ const SignIn = () => {
     return true;
   };
 
-  const handleAuth = async () => {
+  const handleAuth = async (): Promise<void> => {
     if (!validateForm()) {
       return;
     }
@@ -96,37 +105,48 @@ const SignIn = () => {
     
     try {
       if (isSignUp) {
-        const registrationData: UserRegistration = {
-          name,
-          username,
-          email,
-          password
-        };
+        // Use Supabase signUp
+        const data = await signUp(email, password);
         
-        const user = await signup(registrationData);
-        
-        if (user) {
-          console.log("User registered successfully:", user);
-          router.replace("/(root)/(tabs)/explore");
+        if (data?.user && supabaseClient) {
+          // Store additional user metadata in your Supabase profiles table
+          const profileData: ProfileData = {
+            id: data.user.id,
+            name: name,
+            username: username,
+            email: email,
+            created_at: new Date()
+          };
+          
+          // Store profile data in Supabase database
+          const { error: profileError } = await supabaseClient
+            .from('profiles')
+            .insert(profileData);
+            
+          if (profileError) throw profileError;
+          
+          console.log("User registered successfully:", data.user);
+          // The auth state change will trigger navigation in useEffect
         }
       } else {
-        const user = await login(email, password);
+        // Use Supabase signIn
+        const data = await signIn(email, password);
         
-        if (user) {
-          console.log("User logged in successfully:", user);
-          router.replace("/(root)/(tabs)/explore");
+        if (data?.user) {
+          console.log("User logged in successfully:", data.user);
+          // The auth state change will trigger navigation in useEffect
         }
       }
-    } catch (error) {
-      console.error("Authentication error:", error);
-      // Error will be handled by the auth context and displayed via useEffect
+    } catch (error: any) {
+      console.error("Authentication error:", error.message);
+      setErrorMessage(error.message || "Authentication failed");
     } finally {
       setFormLoading(false);
     }
   };
 
   // If we're loading from auth context
-  if (isLoading) {
+  if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
         <ActivityIndicator size="large" color="#2563eb" />
